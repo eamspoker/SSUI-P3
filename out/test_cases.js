@@ -20,6 +20,8 @@ export function runTests() {
     test1();
     test2();
     test3();
+    // custom interactor
+    my_custom_interactor();
     console.log("Test is set up...");
 }
 //-------------------------------------------------------------------
@@ -56,6 +58,14 @@ function test3() {
     let fsmInt = new FSMInteractor(undefined, 400, 0);
     root.addChild(fsmInt);
     fsmInt.startLoadFromJson("./fsm_json/stick.json");
+}
+// my custom interactor: a tip-maximizer fsm
+function my_custom_interactor() {
+    // render it under the
+    let fsmInt = new FSMInteractor(undefined, 0, 300);
+    root.addChild(fsmInt);
+    // load from custom.json
+    fsmInt.startLoadFromJson("./fsm_json/custom.json");
 }
 //-------------------------------------------------------------------
 //# sourceMappingURL=test_cases.js.map

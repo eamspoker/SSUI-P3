@@ -88,7 +88,9 @@ export class FSM {
     // object, eventually causing a redraw to be performed.  
     // 
     damage() {
-        // **** YOUR CODE HERE ****
+        var _a;
+        // if we have damage, call up the tree for a redraw tro be performed
+        (_a = this.parent) === null || _a === void 0 ? void 0 : _a.damage();
     }
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
     // Do connecting and other bookkeeping to initially set up and connect the 
@@ -99,17 +101,38 @@ export class FSM {
         // names we need to look up / bind are found in transitions: in named target 
         // state, region names in event specs, and region names in actions.
         // walk over all the transitions in all the states to get those bound
-        // **** YOUR CODE HERE ****
+        // walk over each state...
+        this.states.forEach(
+        // ... within each state...
+        state => {
+            // walk over each of the transitions...
+            state.transitions.forEach(
+            // ... within each transition...
+            transition => {
+                // ... bind the target ...
+                transition.bindTarget(this.states);
+                // ... bind the region for the transitions onEvent ...
+                transition.onEvent.bindRegion(this.regions);
+                transition.actions.forEach(
+                // ... then for each action ...
+                action => {
+                    // ... bind the region for that action
+                    action.bindRegion(this.regions);
+                });
+            });
+        });
         // start state is the first one
-        // **** YOUR CODE HERE ****
+        this._currentState = this.states[0];
         // need to link all regions back to this object as their parent
-        // **** YOUR CODE HERE ****
+        this.regions.forEach(region => {
+            region.parent = this;
+        });
     }
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     // Reset the FSM to be in its start state.  Note: this does not reset
     // region images to their original states.
     reset() {
-        // **** YOUR CODE HERE ****
+        this._currentState = this.states[0];
     }
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
     // Cause the FSM to act on the given event: represented by an event type (see 
@@ -122,7 +145,21 @@ export class FSM {
         // if we never got the current state bound (maybe a bad json FSM?) bail out
         if (!this.currentState)
             return;
-        // **** YOUR CODE HERE ****
+        // for each of the transitions for this state...
+        this.currentState.transitions.forEach(transition => {
+            // ... we check if the current event/region matches
+            // the transition
+            if (transition.match(evtType, reg)) {
+                // if it is a match, execute every action...
+                transition.actions.forEach(action => {
+                    action.execute(evtType, reg);
+                });
+                // ... and update the current state to the new one
+                // (the transition's target)
+                this._currentState = transition.target;
+                return;
+            }
+        });
     }
     //-------------------------------------------------------------------
     // Debugging Support

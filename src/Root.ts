@@ -73,16 +73,21 @@ export class Root {
         this._batchingDamage = true;
         try {
 
-        
+        // clear the entire canvas
         this.canvasContext.clearRect(0, 0, this.owningCanvas.width, this.owningCanvas.height);
 
+        // then for each child...
         this.children.forEach(child => {
-
+                // save the state
                 this.canvasContext.save();
 
+                // translate into the child coordinates
                 this.canvasContext.translate(child.x, child.y);
-                child.draw(this.canvasContext);
 
+                // draw the child
+                child.draw(this.canvasContext, this.doDebugOutput);
+
+                // restore the context
                 this.canvasContext.restore();
 
 

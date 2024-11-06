@@ -56,8 +56,12 @@ export class FSMInteractor {
     protected _x : number;
     public get x() {return this._x;}
     public set x(v : number) {
-          
-        // **** YOUR CODE HERE ****
+        // if v is new, we update and pass damage up the tree
+        if (!(v === this.x))
+        {
+            this._x = v;
+            this.damage();
+        }
     }
 
     // Y position (top) of this object within the parent Root object (and containing 
@@ -65,8 +69,12 @@ export class FSMInteractor {
     protected _y : number;
     public get y() {return this._y;}
     public set y(v : number) {
-            
-        // **** YOUR CODE HERE ****
+        // if v is new, we update and pass damage up the tree
+        if (!(v === this.y))
+        {
+            this._y = v;
+            this.damage();
+        }
     }
 
     // Position treated as a single value
@@ -89,8 +97,16 @@ export class FSMInteractor {
     protected _parent : Root | undefined;
     public get parent() {return this._parent;}
     public set parent(v : Root | undefined) {
-            
-        // **** YOUR CODE HERE ****
+
+        // if v is new, we update and pass damage up the tree
+        if (!(v === this.parent))
+        {
+            // tell the old parent to redraw
+            this.parent?.damage();
+            this._parent = v;
+            // tell new parent to redraw
+            this.parent?.damage();
+        }
     }
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
@@ -109,8 +125,8 @@ export class FSMInteractor {
     // regions, etc.  This method passes the damage notification to its hosting Root
     // object which coordinates eventual redraw by calling this object's draw() method.
     public damage() {
-           
-        // **** YOUR CODE HERE ****
+        // if we have a parent, pass damage up the tree
+        this.parent?.damage();
     }
     
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -123,7 +139,21 @@ export class FSMInteractor {
         // bail out if we don't have an FSM to work from
         if (!this.fsm) return;
 
-        // **** YOUR CODE HERE ****
+        // for all of the regions in our FSM...
+        this.fsm.regions.forEach(
+            region => {
+
+                ///... save the context, move into the region's coordinate space
+                // draw that region,
+                // then restore the context to translate to the next coordinate
+                // space correctly
+                ctx.save();
+                ctx.translate(region.x, region.y);
+                region.draw(ctx, showDebugging);
+                ctx.restore();
+            }
+        );
+
     }   
 
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -141,17 +171,31 @@ export class FSMInteractor {
 
         // if we have no FSM, there is nothing to pick
         if (!this.fsm) return pickList;
-           
-        // **** YOUR CODE HERE ****
+        
+        // for all of the regions in our FSM...
+        this.fsm.regions.forEach(
+            region => {
+                // check if the region is picked
+                // note: we subtract region.x and region.y as
+                // region.pick expects coordinates local to the region
+                if (region.pick(localX-region.x, localY-region.y))
+                {
+                    // unshift places this region at the beginning of the list
+                    // as we want it in reverse drawing order
+                    // and this.fsm.regions is in drawing order
+                    pickList.unshift(region);
+                }
+            }
+        );
 
         return pickList;
     }
 
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+    // You will need some persistent bookkeeping for dispatchRawEvent()
 
-        
-        // **** YOUR CODE HERE ****   
-        // You will need some persistent bookkeeping for dispatchRawEvent()
+    // what regions were we in before the raw event was dispatched
+    private previous_regions : Region[] = [];
 
     // Dispatch the given "raw" event by translating it into a series of higher-level
     // events which are formulated in terms of the regions of our FSM.  "Raw" events 
@@ -176,7 +220,97 @@ export class FSMInteractor {
         // if we have no FSM, there is nothing to dispatch to
         if (this.fsm === undefined) return;
 
-        // **** YOUR CODE HERE ****
+        if (what == 'move')
+        {
+            let current_regions : Region[] = [];
+
+            // for each region in the fsm...
+            this.fsm.regions.forEach(
+                region => {
+                    
+                    // we check if it's picked (e.g. mouse over interactor)...
+                    let picked : boolean = region.pick(localX-region.x, localY-region.y);
+
+                    // ... and we checked if, before this event, we were in that region
+                    let prevIn : boolean = this.previous_regions.includes(region);
+
+        
+                    if (picked && prevIn)
+                    {
+                        // if we were already in the region and remained inside 
+                        // of it, is a move_inside event
+                        this.fsm?.actOnEvent('move_inside', region);
+
+                        // unshift places items at the beginning of the list
+                        // we use this for reverse drawing order
+                        current_regions.unshift(region);
+
+                    } else if (picked)
+                    {
+                        // if we weren't previously in the region, but are now
+                        // it is an enter event
+                        this.fsm?.actOnEvent('enter', region);
+
+                        // unshift places items at the beginning of the list
+                        // we use this for reverse drawing order
+                        current_regions.unshift(region);
+
+                    } else if (prevIn)
+                    {
+                        // if we were in the region, but no longer are after
+                        // this, we exit the event
+                        this.fsm?.actOnEvent('exit', region);
+
+                    }
+                }
+            )
+
+            // update regions list for bookkeeping
+            this.previous_regions = current_regions;
+
+        } else if (what === 'press')
+        {
+            // for each region in the fsm...
+            this.fsm.regions.forEach(
+                region => {
+
+                    // ... checked if it's picked ...
+                    let picked : boolean = region.pick(localX-region.x, localY-region.y);
+                    if (picked)
+                    {
+                        // ... if it is, act on it
+                        this.fsm?.actOnEvent('press', region);
+                    } 
+            });
+        } else {
+
+            // for the release, we still want to act on it even if there's no
+            // region underneath, so we keep track of whether we found a region
+            // or not
+            let hasReleased = false;
+
+            // for each region in the fsm...
+            this.fsm.regions.forEach(
+                region => {
+
+                     // ... checked if it's picked ...
+                    let picked : boolean = region.pick(localX-region.x, localY-region.y);
+                    if (picked)
+                    {
+                        // ... if it is, act on it
+                        this.fsm?.actOnEvent('release', region);
+                        hasReleased = true;
+                    } 
+            });
+
+            // if we have not yet released (meaning we didn't find a region)
+            // we release_none
+            if (!hasReleased)
+            {
+                this.fsm?.actOnEvent('release_none');
+            }
+        }
+        
     }
 
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .

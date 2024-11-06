@@ -32,7 +32,24 @@ export class EventSpec {
             this._region = undefined;
             return;
         }
-        // **** YOUR CODE HERE ****
+        // since we can't return from the outer function within
+        // the lambda passed to the forEach loop, we keep track of whether
+        // or not the region was found
+        let found = false;
+        // iterate through the region lists, set found to true if we find
+        // the region
+        regionList.forEach(region => {
+            if (region.name === this.regionName) {
+                this._region = region;
+                found = true;
+            }
+        });
+        // don't want to move on to the next block of code if found region
+        if (found) {
+            return;
+        }
+        // handling if we didn't find the region
+        this._region = undefined;
         // we didn't match any region, that's ok for some forms that don't need a region
         if (this.evtType === 'nevermatch')
             return;
@@ -48,8 +65,14 @@ export class EventSpec {
     // by an event type (evtType) and an optional associated region (regn).  If 
     // our region is undefined and region name is "*", we will match to any region.
     match(evtType, regn) {
-        // **** YOUR CODE HERE ****
-        // **** Remove this: just here to get it to compile... ****
+        // console.log(this.evtType + ", " + evtType + "; " + this.regionName + ", " + regn?.name);
+        if (!(evtType === this.evtType || this.evtType == 'any')) {
+            return false;
+        }
+        if ((!this.region && this.regionName === "*") ||
+            (this.region === regn)) {
+            return true;
+        }
         return false;
     }
     //-------------------------------------------------------------------

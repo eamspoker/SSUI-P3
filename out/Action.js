@@ -31,13 +31,53 @@ export class Action {
     execute(evtType, evtReg) {
         if (this._actType === 'none')
             return;
-        // **** YOUR CODE HERE ****
+        // perform an action based on this objects' type
+        switch (this._actType) {
+            case 'set_image':
+                // set the image if we have an assigned region 
+                if (this.onRegion) {
+                    this.onRegion.imageLoc = this.param;
+                }
+                break;
+            case 'clear_image':
+                // clear image if we have an assigned region
+                if (this.onRegion) {
+                    this.onRegion.imageLoc = "";
+                }
+                break;
+            case 'print':
+                // print only this action
+                console.log(this.param);
+                break;
+            case 'print_event':
+                // print a string representing the entire event
+                console.log(this.param + " " + evtType + " " + (evtReg === null || evtReg === void 0 ? void 0 : evtReg.name));
+                break;
+            default:
+                break;
+        }
     }
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     // Attempt to find the name listed for this region in the given list of regions
     // (from the whole FSM), assiging the Region object to this._onRegion if found.
     bindRegion(regionList) {
-        // **** YOUR CODE HERE ****
+        // since we can't return from the outer function within
+        // the lambda passed to the forEach loop, we keep track of whether
+        // or not the region was found
+        let found = false;
+        // iterate through the region lists, set found to true if we find
+        // the region
+        regionList.forEach(region => {
+            if (region.name === this.onRegionName) {
+                this._onRegion = region;
+                found = true;
+            }
+        });
+        // don't want to move on to the next block of code if found region
+        if (found) {
+            return;
+        }
+        // handling if we didn't find the region
         // ok to have no matching region for some actions
         if (this.actType === 'none' || this.actType === 'print' ||
             this.actType === 'print_event') {

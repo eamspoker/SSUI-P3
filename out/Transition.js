@@ -42,9 +42,8 @@ export class Transition {
     // by an event type and optional region; see EventSpec for details on available
     // event types and their meaning).
     match(evtType, regn) {
-        // **** YOUR CODE HERE ****
-        // **** Remove this, it's just here to get this file to compile
-        return false;
+        // match the event with our onEvent
+        return this.onEvent.match(evtType, regn);
     }
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
     // Attempt to look up the name of the target state for this transition and 
@@ -52,7 +51,23 @@ export class Transition {
     // will remain undefined if the target name does not match any actual states in 
     // the FSM (in which case an error message will also be generted using Err.emit()).
     bindTarget(stateList) {
-        // **** YOUR CODE HERE ****
+        // since we can't return from the outer function within
+        // the lambda passed to the forEach loop, we keep track of whether
+        // or not the region was found
+        let found = false;
+        // for each state in the list of states...
+        stateList.forEach(state => {
+            /// if the state has the same name as the targetName
+            if (state.name === this.targetName) {
+                // set our target to the state
+                this._target = state;
+                found = true;
+            }
+        });
+        // don't want to move on to the next block of code if found target
+        if (found) {
+            return;
+        }
         // no matching state name, so generate an error message
         Err.emit(`State '${this._targetName}' in transition does not match any state.`);
     }

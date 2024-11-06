@@ -1,0 +1,150 @@
+{
+    "regions": [
+        {
+            "name": "title",
+            "x": 78.5, "y": 150, "w":-1, "h":-1, 
+            "imageLoc": "./images/chooseamount.png"
+        },
+        {
+            "name": "tip15",
+            "x": 0, "y": 250, "w":-1, "h":-1, 
+            "imageLoc": "./images/tip15.png"
+        },
+        {
+            "name": "tip20",
+            "x":150, "y": 250, "w":-1, "h":-1, 
+            "imageLoc": "./images/tip20.png"
+        },
+        {
+            "name": "tip25",
+            "x": 300, "y": 250, "w":-1, "h":-1, 
+            "imageLoc": "./images/tip25.png"
+        },
+        {
+            "name": "tiplong",
+            "x": 0, "y": 400, "w":-1, "h":-1, 
+            "imageLoc": "./images/tiplong.png"
+        }
+        
+
+    ], 
+    "states":[
+        {
+            "name" : "initial_state",
+            "transitions" : [
+                {
+                    "onEvent" : {"evtType" : "enter", "region" : "tip25"},
+                    "target" : "over_tip25",
+                    "actions" : []
+                },
+                {
+                    "onEvent" : {"evtType" : "enter", "region" : "tip15"},
+                    "target" : "over_tip15",
+                    "actions" : [
+                        {"act": "set_image", "region": "tip15", "param": "./images/tip25.png"},
+                        {"act": "set_image", "region": "tip20", "param": "./images/tip15.png"},
+                        {"act": "set_image", "region": "tip25", "param": "./images/tip20.png"}
+                    ]
+                },  {
+                    "onEvent" : {"evtType" : "enter", "region" : "tip20"},
+                    "target" : "over_tip20",
+                    "actions" : [
+                        {"act": "set_image", "region": "tip15", "param": "./images/tip20.png"},
+                        {"act": "set_image", "region": "tip20", "param": "./images/tip25.png"},
+                        {"act": "set_image", "region": "tip25", "param": "./images/tip15.png"}
+                    ]
+                }, 
+                {
+                    "onEvent" : {"evtType" : "enter", "region" : "tiplong"},
+                    "target" : "over_tiplong",
+                    "actions" : []
+                }
+            ]
+        },
+        {
+            "name" : "over_tip25",
+            "transitions" : [
+                {
+                    "onEvent" : {"evtType" : "exit", "region" : "tip25"},
+                    "target" : "initial_state",
+                    "actions" : []
+                }
+            ]
+        },
+
+        {
+            "name" : "over_tip15",
+            "transitions" : [
+                {
+                    "onEvent" : {"evtType" : "exit", "region" : "tip15"},
+                    "target" : "initial_state",
+                    "actions" : [
+                        {"act": "set_image", "region": "tip15", "param": "./images/tip15.png"},
+                        {"act": "set_image", "region": "tip20", "param": "./images/tip20.png"},
+                        {"act": "set_image", "region": "tip25", "param": "./images/tip25.png"}
+                    ]
+                }
+            ]
+        },
+
+        {
+            "name" : "over_tip20",
+            "transitions" : [
+
+                {
+                    "onEvent" : {"evtType" : "exit", "region" : "tip20"},
+                    "target" : "initial_state",
+                    "actions" : [
+                        {"act": "set_image", "region": "tip15", "param": "./images/tip15.png"},
+                        {"act": "set_image", "region": "tip20", "param": "./images/tip20.png"},
+                        {"act": "set_image", "region": "tip25", "param": "./images/tip25.png"}
+                    ]
+                }
+            ]
+        },
+
+        {
+            "name" : "over_tiplong",
+            "transitions" : [
+
+                {
+                    "onEvent" : {"evtType" : "press", "region" : "tiplong"},
+                    "target" : "over_tiplong25",
+                    "actions" : [
+                        {"act": "set_image", "region": "tiplong", "param": "./images/tiplong25.png"}
+                    ]
+                },
+                {
+                    "onEvent" : {"evtType" : "exit", "region" : "tiplong"},
+                    "target" : "initial_state",
+                    "actions" : []
+                }
+            ]
+        },
+        {
+            "name" : "over_tiplong25",
+            "transitions" : [
+
+                {
+                    "onEvent" : {"evtType" : "exit", "region" : "tiplong"},
+                    "target" : "initial_state",
+                    "actions" : [
+                        {"act": "set_image", "region": "tiplong", "param": "./images/tiplong.png"}
+
+                    ]
+                },
+                {
+                    "onEvent" : {"evtType" : "release", "region" : "tiplong"},
+                    "target" : "over_tiplong",
+                    "actions" : [
+                        {"act": "set_image", "region": "tiplong", "param": "./images/tiplong.png"}
+                    ]
+                }
+
+            ]
+        }
+
+
+
+    ]
+}

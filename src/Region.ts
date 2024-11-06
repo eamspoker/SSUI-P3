@@ -91,8 +91,12 @@ export class Region {
 	protected _x : number;
     public get x() {return this._x;}
     public set x(v : number) {
-            
-        // **** YOUR CODE HERE ****
+        // if v is new, we update and pass damage up the tree
+        if (!(v === this.x))
+            {
+                this._x = v;
+                this.damage();
+            }
     }
        
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
@@ -101,8 +105,12 @@ export class Region {
 	protected _y : number;
     public get y() {return this._y;}
     public set y(v : number) {
-            
-        // **** YOUR CODE HERE ****
+        // if v is new, we update and pass damage up the tree
+        if (!(v === this.y))
+        {
+            this.y = v;
+            this.damage();
+        }
     }   
 
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
@@ -112,10 +120,9 @@ export class Region {
 	protected _w : number;
     public get w() {return this._w;}
     public set w(v : number) {
-            
+        // if v is new, we update and pass damage up the tree
         if (!(v === this.w))
         {
-            this.damage();
             this._w = v;
             this.damage();
         }
@@ -128,13 +135,13 @@ export class Region {
 	protected _h : number;
     public get h() {return this._h;}
     public set h(v : number) {
-            
-        if (!(v === this.w))
-            {
-                this.damage();
-                this._w = v;
-                this.damage();
-            }
+        // if v is new, we update and pass damage up the tree
+        if (!(v === this.h))
+        {
+            this._h = v;
+            this.damage();
+        }
+
     }  
 
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
@@ -164,8 +171,16 @@ export class Region {
     protected _parent : FSM | undefined;
     public get parent() {return this._parent;}
     public set parent(v : FSM | undefined) {
-            
-        // **** YOUR CODE HERE ****
+         // if v is new, we update and pass damage up the tree
+        if (!(v === this.parent))
+        {
+            // tell the old parent to redraw
+            this.parent?.damage();
+            this._parent = v;
+
+            // tell the new parent to redraw
+            this.parent?.damage();
+        }
     }
 
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -227,12 +242,12 @@ export class Region {
     // Perform a pick test indicating whether the given position (expressed in the local
     // coordinates of this object) should be considered "inside" or "over" this region.
     public pick(localX : number, localY : number) : boolean {
-            
-        // **** YOUR CODE HERE ****
-        
-        // **** Remove this, it's just here to make this compile as-is
-        return false;
-    }
+
+        // return if its within the bounds of the region
+        // note: 0,0 is the upper left corner of the region
+        return localX >= 0 && localX < this.w && 
+                localY >= 0 && localY < this.h;
+     }
 
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
@@ -245,16 +260,17 @@ export class Region {
     public draw(ctx : CanvasRenderingContext2D, showDebugFrame : boolean = false) : void {
         // if we have a valid loaded image, draw it
         if (this.loaded && !this.loadError && this.image) {
-               
-            // **** YOUR CODE HERE ****
+            
+            // draw this at (0,0), which should be in local coordinates
+            ctx.drawImage(this.image, 0, 0);
 
         }
         
         //draw a frame indicating the (input) bounding box if requested
         if (showDebugFrame) {
             ctx.save();
-                ctx.strokeStyle = 'black';
-                ctx.strokeRect(0, 0, this.w, this.h);
+            ctx.strokeStyle = 'black';
+            ctx.strokeRect(0, 0, this.w, this.h);
             ctx.restore();
         }
     }
@@ -265,8 +281,8 @@ export class Region {
     // has changed (e.g., the image or position has changed).  This passes this image
     // notification to its parent FSM which eventually results in a redraw.
     public damage() {
-            
-        // **** YOUR CODE HERE ****
+        // if we have a parent, pass damage up the tree
+        this.parent?.damage();
     }
 
     //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
